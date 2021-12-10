@@ -1,0 +1,10 @@
+/resource/datasets/Dog/
+/resource/datasets/Cat/
+/resource/datasets/output/.npy
+/resource/datasets/output/pic.txt
+/resource/datasets/output/imgs_train.npy
+/resource/datasets/output/imgs_mask_train.npy
+/resource/datasets/output/imgs_test.npy
+/resource/datasets/output/imgs_mask_test.npy
+/segmentation/unet_model.hdf5
+_train.npy
