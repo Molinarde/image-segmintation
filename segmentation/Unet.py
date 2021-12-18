@@ -134,6 +134,12 @@ class myUnet(object):
         print(imgs_mask_test)
         np.save('../resource/datasets/output/imgs_mask_test.npy', imgs_mask_test)
 
+    def img_Test(self):
+        mydata = dataProcess(self.img_rows, self.img_cols)
+        imgs_test = mydata.load_test_data()
+        imgs_mask_test = model.predict(imgs_test, batch_size=1, verbose=1)
+        np.save('../resource/datasets/output/imgs_mask_test.npy', imgs_mask_test)
+
     def save_img(self):
         print("array to image")
         imgs = np.load('../resource/datasets/output/imgs_mask_test.npy')
@@ -164,5 +170,6 @@ if __name__ == '__main__':
     # plot_model(model, to_file='model.png')
     # Uncomment the below line if you want to re-train a previously trained model
     # myunet.load_model_weights(model)
-    myunet.train()
+    # myunet.train()
+    myunet.img_Test()
     myunet.save_img()
