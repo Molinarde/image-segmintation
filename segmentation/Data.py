@@ -2,8 +2,7 @@ from keras.preprocessing.image import img_to_array, load_img
 import numpy as np
 import glob
 
-
-class dataProcess(object):
+class DataProcess(object):
     def __init__(self, out_rows, out_cols, data_path="../resource/datasets/train/input", label_path="../resource/datasets/train/mask",
                  test_path="../resource/datasets/input", npy_path="../resource/datasets/output", img_type="jpg"):
         self.out_rows = out_rows
@@ -24,7 +23,7 @@ class dataProcess(object):
 
         for x in range(len(imgs)):
             imgpath = imgs[x]
-            pic_name = imgpath.split('/')[-1]
+            pic_name = imgpath.split('\\')[-1]
             labelpath = self.label_path + '/' + 'mask_'+ pic_name
             img = load_img(imgpath, grayscale=False, target_size=[512, 512])
             label = load_img(labelpath, grayscale=True, target_size=[512, 512])
@@ -88,6 +87,6 @@ class dataProcess(object):
 
 
 if __name__ == "__main__":
-    mydata = dataProcess(512, 512)
+    mydata = DataProcess(512, 512)
     mydata.create_train_data()
     mydata.create_test_data()

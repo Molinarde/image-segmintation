@@ -1,20 +1,20 @@
-
-from tensorflow.keras.models import *
-from tensorflow.keras.layers import *
-from tensorflow.keras.optimizers import *
-from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.preprocessing.image import array_to_img
 import cv2
-from Data import *
+from tensorflow.keras.callbacks import ModelCheckpoint
+from tensorflow.keras.layers import *
+from tensorflow.keras.models import *
+from tensorflow.keras.optimizers import *
+from tensorflow.keras.preprocessing.image import array_to_img
+import numpy as np
+from segmentation.Data import DataProcess
 
 
-class myUnet(object):
+class Unet(object):
     def __init__(self, img_rows=512, img_cols=512):
         self.img_rows = img_rows
         self.img_cols = img_cols
 
     def load_data(self):
-        mydata = dataProcess(self.img_rows, self.img_cols)
+        mydata = DataProcess(self.img_rows, self.img_cols)
         imgs_train, imgs_mask_train = mydata.load_train_data()
         imgs_test = mydata.load_test_data()
         return imgs_train, imgs_mask_train, imgs_test
@@ -25,30 +25,30 @@ class myUnet(object):
         conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(inputs)
         # print(conv1)
         conv1 = BatchNormalization()(conv1)
-        print ("conv1 shape:", conv1.shape)
+        print("conv1 shape:", conv1.shape)
         conv1 = Conv2D(64, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv1)
         conv1 = BatchNormalization()(conv1)
-        print ("conv1 shape:", conv1.shape)
+        print("conv1 shape:", conv1.shape)
         pool1 = MaxPooling2D(pool_size=(2, 2))(conv1)
-        print ("pool1 shape:", pool1.shape)
+        print("pool1 shape:", pool1.shape)
 
         conv2 = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool1)
-        print ("conv2 shape:", conv2.shape)
+        print("conv2 shape:", conv2.shape)
         conv2 = BatchNormalization()(conv2)
         conv2 = Conv2D(128, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv2)
-        print ("conv2 shape:", conv2.shape)
+        print("conv2 shape:", conv2.shape)
         conv2 = BatchNormalization()(conv2)
         pool2 = MaxPooling2D(pool_size=(2, 2))(conv2)
-        print ("pool2 shape:", pool2.shape)
+        print("pool2 shape:", pool2.shape)
 
         conv3 = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool2)
-        print ("conv3 shape:", conv3.shape)
+        print("conv3 shape:", conv3.shape)
         conv3 = BatchNormalization()(conv3)
         conv3 = Conv2D(256, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv3)
-        print ("conv3 shape:", conv3.shape)
+        print("conv3 shape:", conv3.shape)
         conv3 = BatchNormalization()(conv3)
         pool3 = MaxPooling2D(pool_size=(2, 2))(conv3)
-        print ("pool3 shape:", pool3.shape)
+        print("pool3 shape:", pool3.shape)
 
         conv4 = Conv2D(512, 3, activation='relu', padding='same', kernel_initializer='he_normal')(pool3)
         conv4 = BatchNormalization()(conv4)
@@ -63,7 +63,8 @@ class myUnet(object):
         conv5 = BatchNormalization()(conv5)
         drop5 = Dropout(0.5)(conv5)
 
-        up6 = Conv2D(512, 2, activation='relu', padding='same', kernel_initializer='he_normal')(UpSampling2D(size=(2, 2))(drop5))
+        up6 = Conv2D(512, 2, activation='relu', padding='same', kernel_initializer='he_normal')(
+            UpSampling2D(size=(2, 2))(drop5))
         up6 = BatchNormalization()(up6)
         merge6 = concatenate([drop4, up6], axis=3)
         print(up6)
@@ -108,7 +109,7 @@ class myUnet(object):
         print(conv9)
         conv9 = Conv2D(2, 3, activation='relu', padding='same', kernel_initializer='he_normal')(conv9)
         conv9 = BatchNormalization()(conv9)
-        print ("conv9 shape:", conv9.shape)
+        print("conv9 shape:", conv9.shape)
 
         conv10 = Conv2D(1, 1, activation='sigmoid')(conv9)
         print(conv10)
@@ -118,6 +119,13 @@ class myUnet(object):
 
         return model
 
+    def segmintationImage(self):
+        mydata = DataProcess(self.img_rows, self.img_cols)
+        model = self.get_unet()
+        imgs_test = mydata.load_test_data()
+        imgs_mask_test = model.predict(imgs_test, batch_size=1, verbose=1)
+        np.save('../resource/datasets/output/imgs_mask_test.npy', imgs_mask_test)
+
     def train(self):
         print("loading data")
         imgs_train, imgs_mask_train, imgs_test = self.load_data()
@@ -126,18 +134,12 @@ class myUnet(object):
         print("got unet")
         model_checkpoint = ModelCheckpoint('unet.hdf5', monitor='loss', verbose=1, save_best_only=True)
         print('Fitting model...')
-        model.fit(imgs_train, imgs_mask_train, batch_size=4, epochs=1, verbose=1,
+        model.fit(imgs_train, imgs_mask_train, batch_size=1, epochs=1, verbose=2,
                   validation_split=0.2, shuffle=True, callbacks=[model_checkpoint])
         model.save_weights('./unet_model.hdf5')
         print('predict test data')
         imgs_mask_test = model.predict(imgs_test, batch_size=1, verbose=1)
         print(imgs_mask_test)
-        np.save('../resource/datasets/output/imgs_mask_test.npy', imgs_mask_test)
-
-    def img_Test(self):
-        mydata = dataProcess(self.img_rows, self.img_cols)
-        imgs_test = mydata.load_test_data()
-        imgs_mask_test = model.predict(imgs_test, batch_size=1, verbose=1)
         np.save('../resource/datasets/output/imgs_mask_test.npy', imgs_mask_test)
 
     def save_img(self):
@@ -146,7 +148,7 @@ class myUnet(object):
         piclist = []
         for line in open("../resource/datasets/output/pic.txt"):
             line = line.strip()
-            picname = line.split('/')[-1]
+            picname = line.split('\\')[-1]
             piclist.append(picname)
         print(len(piclist))
         for i in range(imgs.shape[0]):
@@ -155,21 +157,13 @@ class myUnet(object):
             img = array_to_img(img)
             img.save(path)
             cv_pic = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
-            cv_pic = cv2.resize(cv_pic,(1918,1280),interpolation=cv2.INTER_CUBIC)
+            cv_pic = cv2.resize(cv_pic, (1918, 1280), interpolation=cv2.INTER_CUBIC)
             binary, cv_save = cv2.threshold(cv_pic, 127, 255, cv2.THRESH_BINARY)
             cv2.imwrite(path, cv_save)
 
     def load_model_weights(self, model):
         model.load_weights('./unet_model.hdf5')
 
-
-if __name__ == '__main__':
-    myunet = myUnet()
-    model = myunet.get_unet()
-    # model.summary()
-    # plot_model(model, to_file='model.png')
-    # Uncomment the below line if you want to re-train a previously trained model
-    # myunet.load_model_weights(model)
-    # myunet.train()
-    myunet.img_Test()
-    myunet.save_img()
+    def set_weights(self, model):
+        # n = load_model('./unet_model.hdf5')
+        model.set_weights('C:\\Newfolder\\project\\image-segmintation\\segmentation\\unet_model.hdf5')
