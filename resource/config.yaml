@@ -1,8 +1,8 @@
 datasets:
   path:
     test:
-      input: '/input'
-      output: '/output'
+      input: '../resource/datasets/input'
+      output: '../resource/datasets/output'
     train:
-      input: '/train/input'
-      mask: './train/mask'
+      input: '../resource/datasets/train/input'
+      mask: '../resource/datasets/train/mask'

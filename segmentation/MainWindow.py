@@ -6,6 +6,7 @@ from PyQt5.QtWidgets import *
 
 from Data import DataProcess
 from Unet import Unet
+from Config import Config
 
 
 class MainWindow(QMainWindow):
@@ -14,9 +15,15 @@ class MainWindow(QMainWindow):
         self.setupUi()
 
     def setupUi(self):
+        config = Config()
+        trainInput = config.getPathDataTrainInput()
+        maskTrain = config.getPathDataTrainMask()
+        testInput = config.getPathDataTestInput()
+        testOutput = config.getPathDataTestOutput()
+
         self.unet = Unet()
         self.model = self.unet.get_unet()
-        self.mydata = DataProcess(512, 512)
+        self.mydata = DataProcess(512, 512, trainInput, maskTrain, testInput, testOutput)
 
         centralWidget = QWidget()
         self.setCentralWidget(centralWidget)
@@ -39,7 +46,6 @@ class MainWindow(QMainWindow):
 
         self.mainLayout.addWidget(trainButton)
         self.mainLayout.addWidget(dataButton)
-        self.mainLayout.addWidget(trainButton)
         self.mainLayout.addWidget(segmintationPredicatButton)
         self.mainLayout.addWidget(saveImg)
         centralWidget.setLayout(self.mainLayout)
